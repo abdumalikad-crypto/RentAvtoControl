@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import {
@@ -9,7 +9,6 @@ import {
   Building2,
   CheckCircle,
   PlusCircle,
-  Upload,
   Sparkles,
   Info,
   DollarSign,
@@ -24,7 +23,7 @@ const PRESET_CAR_PHOTOS = [
   { name: 'BYD Song Plus EV (White)', url: '/cars/byd_song.jpg', brand: 'BYD', model: 'Song Plus Flagship' },
   { name: 'Chevrolet Malibu 2 Turbo (Grey)', url: '/cars/malibu.jpg', brand: 'Chevrolet', model: 'Malibu 2.0 Turbo' },
   { name: 'Kia K5 GT-Line (White)', url: '/cars/kia_k5.jpg', brand: 'Kia', model: 'K5 GT-Line' },
-  { name: 'Chevrolet Cobalt Style AT (White)', url: '/cars/cobalt.jpg', brand: 'Chevrolet', model: 'Cobalt 4-pozitsiya AT' },
+  { name: 'Chevrolet Cobalt Style AT (White)', url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80', brand: 'Chevrolet', model: 'Cobalt 4-pozitsiya AT' },
 ];
 
 export default function AddCarPage() {
@@ -58,6 +57,7 @@ export default function AddCarPage() {
   const [selectedPhotoUrl, setSelectedPhotoUrl] = useState('/cars/tracker.jpg');
   const [customPhotoUrl, setCustomPhotoUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-fill from preset
   const handleSelectPresetPhoto = (preset: typeof PRESET_CAR_PHOTOS[0]) => {
@@ -65,6 +65,21 @@ export default function AddCarPage() {
     if (!title) setTitle(preset.name);
     setBrand(preset.brand);
     if (!model) setModel(preset.model);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      if (result) {
+        setCustomPhotoUrl(result);
+        setSelectedPhotoUrl(result);
+        showToast("Mashina fotosurati yuklandi", "Mashina rasmi muvaffaqiyatli tanlandi.", "success");
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -512,21 +527,24 @@ export default function AddCarPage() {
         {/* Step 5: High Resolution Car Photo Selection */}
         <div className="glass-panel" style={{ padding: '1.75rem' }}>
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Upload size={18} color="var(--accent-primary)" />
+            <Car size={20} color="var(--accent-primary)" />
             5. Avtomobil Fotosurati
           </h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-            Platformadagi professional studiya rasmlaridan birini tanlang yoki o&apos;z rasmingiz havolasini kiriting.
+            Platformadagi professional mashina rasmlaridan birini tanlang yoki o&apos;z mashinangiz fotosuratini yuklang.
           </p>
 
-          {/* Preset Studio Photos Selection */}
+          {/* Preset Studio Photos Selection + Custom Car Photo Tile */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
             {PRESET_CAR_PHOTOS.map((preset) => {
-              const isSelected = selectedPhotoUrl === preset.url;
+              const isSelected = selectedPhotoUrl === preset.url && !customPhotoUrl;
               return (
                 <div
                   key={preset.url}
-                  onClick={() => handleSelectPresetPhoto(preset)}
+                  onClick={() => {
+                    setCustomPhotoUrl('');
+                    handleSelectPresetPhoto(preset);
+                  }}
                   style={{
                     borderRadius: 'var(--radius-md)',
                     overflow: 'hidden',
@@ -546,17 +564,92 @@ export default function AddCarPage() {
                 </div>
               );
             })}
+
+            {/* Custom Car Photo Upload Card Tile with Car Icon */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
+                border: customPhotoUrl ? '2px solid var(--accent-primary)' : '2px dashed var(--accent-primary)',
+                cursor: 'pointer',
+                background: customPhotoUrl ? 'var(--bg-input)' : 'rgba(196, 89, 43, 0.08)',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '140px',
+                textAlign: 'center',
+                padding: '0.65rem',
+                boxShadow: customPhotoUrl ? '0 4px 15px rgba(196, 89, 43, 0.35)' : 'none',
+              }}
+            >
+              {customPhotoUrl ? (
+                <>
+                  <div style={{ height: '90px', width: '100%', overflow: 'hidden', borderRadius: 'var(--radius-sm)', marginBottom: '0.35rem' }}>
+                    <img src={customPhotoUrl} alt="Mashina rasmi" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
+                    <Car size={14} /> O&apos;z Mashina Rasmi
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '50%',
+                      background: 'rgba(196, 89, 43, 0.16)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--accent-primary)',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    <Car size={26} />
+                  </div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                    Mashina Rasmini Qo&apos;shish
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                    Rasm tanlang (Fayl yuklash)
+                  </div>
+                </>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+              />
+            </div>
           </div>
 
           <div className="input-group">
-            <label className="input-label">Yoki O&apos;zingizning Rasm Havolangiz (ixtiyoriy)</label>
-            <input
-              type="url"
-              value={customPhotoUrl}
-              onChange={(e) => setCustomPhotoUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/... yoki rasm URL manzili"
-              className="input-box"
-            />
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Car size={16} color="var(--accent-primary)" />
+              <span>Yoki O&apos;zingizning Mashina Rasmi Havolasi (URL manzili)</span>
+            </label>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-primary)' }}>
+                <Car size={17} />
+              </div>
+              <input
+                type="url"
+                value={customPhotoUrl}
+                onChange={(e) => {
+                  setCustomPhotoUrl(e.target.value);
+                  setSelectedPhotoUrl(e.target.value);
+                }}
+                placeholder="https://images.unsplash.com/... yoki yuqoridagi kartani bosing"
+                className="input-box"
+                style={{ paddingLeft: '40px' }}
+              />
+            </div>
           </div>
         </div>
 

@@ -101,6 +101,10 @@ export interface RentalContract {
   penaltyFee: number;
   gpsTrackingActive: boolean;
   currentLocation?: string;
+  driverAvatar?: string;
+  driverPassport?: string;
+  ownerPassport?: string;
+  contractScanImage?: string;
   paymentHistory: {
     id: string;
     date: string;

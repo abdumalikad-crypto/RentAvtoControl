@@ -52,11 +52,11 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY_USERS = 'rac_users_v1';
-const LOCAL_STORAGE_KEY_CARS = 'rac_cars_v1';
-const LOCAL_STORAGE_KEY_CONTRACTS = 'rac_contracts_v1';
-const LOCAL_STORAGE_KEY_NOTIFS = 'rac_notifs_v1';
-const LOCAL_STORAGE_KEY_AUTH = 'rac_current_user_v1';
+const LOCAL_STORAGE_KEY_USERS = 'rac_users_v2';
+const LOCAL_STORAGE_KEY_CARS = 'rac_cars_v2';
+const LOCAL_STORAGE_KEY_CONTRACTS = 'rac_contracts_v2';
+const LOCAL_STORAGE_KEY_NOTIFS = 'rac_notifs_v2';
+const LOCAL_STORAGE_KEY_AUTH = 'rac_current_user_v2';
 const LOCAL_STORAGE_KEY_THEME = 'rac_theme_v1';
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -73,9 +73,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Hydrate from localStorage
   useEffect(() => {
     try {
-      // Purge any lingering legacy keys or old mock accounts (including Aziz)
-      ['ijara_users_v6', 'ijara_cars_v6', 'ijara_contracts_v6', 'ijara_notifs_v6', 'ijara_current_user_v6',
-       'ijara_cars_v2', 'ijara_contracts_v2', 'ijara_cars_v5', 'ijara_contracts_v5'].forEach((k) => {
+      // Purge any lingering legacy keys or old mock accounts
+      ['rac_users_v1', 'rac_cars_v1', 'rac_contracts_v1', 'rac_notifs_v1', 'rac_current_user_v1',
+       'ijara_users_v6', 'ijara_cars_v6', 'ijara_contracts_v6', 'ijara_notifs_v6', 'ijara_current_user_v6'].forEach((k) => {
         try { localStorage.removeItem(k); } catch {}
       });
 
@@ -89,26 +89,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (storedUsers) {
         try {
           const parsedUsers: User[] = JSON.parse(storedUsers);
-          // Purge any "Aziz" or old mock driver-1
           const cleaned = parsedUsers.filter((u) => u.id !== 'user-driver-1' && !u.name.toLowerCase().includes('aziz'));
           setUsers(cleaned.length > 0 ? cleaned : INITIAL_USERS);
         } catch {
           setUsers(INITIAL_USERS);
         }
+      } else {
+        setUsers(INITIAL_USERS);
       }
 
       if (storedCars) {
         try {
           const parsedCars: Car[] = JSON.parse(storedCars);
-          setCars(parsedCars);
-        } catch {}
+          setCars(parsedCars.length > 0 ? parsedCars : INITIAL_CARS);
+        } catch {
+          setCars(INITIAL_CARS);
+        }
+      } else {
+        setCars(INITIAL_CARS);
       }
 
       if (storedContracts) {
         try {
           const parsedContracts: RentalContract[] = JSON.parse(storedContracts);
-          setContracts(parsedContracts);
-        } catch {}
+          setContracts(parsedContracts.length > 0 ? parsedContracts : INITIAL_CONTRACTS);
+        } catch {
+          setContracts(INITIAL_CONTRACTS);
+        }
+      } else {
+        setContracts(INITIAL_CONTRACTS);
       }
 
       if (storedNotifs) {

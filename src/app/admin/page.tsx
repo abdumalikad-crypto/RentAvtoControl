@@ -24,10 +24,13 @@ import {
   User,
   Radio,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Image as ImageIcon
 } from 'lucide-react';
 import { NotificationModal } from '@/components/NotificationModal';
 import { AuthModal } from '@/components/AuthModal';
+import { ContractImageModal } from '@/components/ContractImageModal';
+import { RentalContract } from '@/types';
 import { getTelegramPaymentUrl, openTelegramChat, TELEGRAM_USERNAME, formatUzSum } from '@/lib/telegram';
 
 export default function AdminPage() {
@@ -46,6 +49,8 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [selectedImageContract, setSelectedImageContract] = useState<RentalContract | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   // NOT LOGGED IN STATE
   if (!currentUser) {
@@ -355,6 +360,17 @@ export default function AdminPage() {
 
                     <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                       <button
+                        onClick={() => {
+                          setSelectedImageContract(contract);
+                          setIsImageModalOpen(true);
+                        }}
+                        className="btn btn-primary btn-sm"
+                        style={{ gap: '0.35rem', fontWeight: 800 }}
+                      >
+                        <ImageIcon size={14} />
+                        <span>Rasm Shaklida Ko&apos;rish</span>
+                      </button>
+                      <button
                         onClick={() => sendDualPaymentReminder(contract.id)}
                         className="btn btn-warning btn-sm"
                       >
@@ -588,6 +604,17 @@ export default function AdminPage() {
           Hozirda tizimda {cars.length} ta mashina va {contracts.length} ta faol shartnoma mavjud.
         </div>
       </div>
+
+      <ContractImageModal
+        contract={selectedImageContract}
+        isOpen={isImageModalOpen}
+        onClose={() => {
+          setIsImageModalOpen(false);
+          setSelectedImageContract(null);
+        }}
+      />
+      <NotificationModal isOpen={isNotifModalOpen} onClose={() => setIsNotifModalOpen(false)} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 }
